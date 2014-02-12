@@ -51,6 +51,7 @@ stpncpy (char *dst, const char *src, size_t len)
 }
 #endif
 
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -180,4 +181,47 @@ int client_connect(const char* host, const char* port) {
     freeaddrinfo(res);
 
     return sockfd;
+}
+
+/*
+ * Gets all data from the specified source
+ */
+int client_receive(int sockfd, std::string &res) {
+    char buf[BUF_SIZE];
+    int numbytes;
+    while (true) {
+        if ((numbytes = recv(sockfd, buf, BUF_SIZE-1, 0)) == -1) {
+            fprintf(stderr, "client: recv error\n");
+            return -1;
+        }
+
+        // Server is done sending
+        else if (numbytes == 0) {
+            break;
+        }
+
+        // Append to response
+        res.append(buf, numbytes);
+    }
+    return 0;
+}
+
+/*
+ * Ensure all data is sent
+ */
+int send_all(int sockfd, const char *buf, int len) {
+    int sent = 0;   // Bytes we've sent
+    int left = len; // Bytes we have left to send
+    int n;
+
+    while (sent < len) {
+        n = send(sockfd, buf+sent, left, 0);
+        if (n == -1) {
+            fprintf(stderr, "send error, we only sent %d of %d bytes\n", sent, len);
+            return -1;
+        }
+        sent += n;
+        left -= n;
+    }
+    return 0;
 }
