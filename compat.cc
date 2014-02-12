@@ -63,20 +63,23 @@ stpncpy (char *dst, const char *src, size_t len)
 #include <arpa/inet.h>
 #include <signal.h>
 
-#define SERVER_LISTEN_PORT "14886"  // Port users will connect to
-#define BACKLOG 20                  // Number of requests allowed in queue
-
 void sigchld_handler(int s) {
     while(waitpid(-1, NULL, WNOHANG) > 0);
     }
 
-// gets socket addr, only need to support IPv4
+/*
+ * gets socket addr, only need to support IPv4
+ */
 void *get_in_addr(struct sockaddr *sa) {
     return &(((struct sockaddr_in*)sa)->sin_addr);
 }
-    
+
+/* 
+ * Creates socket, binds to port, starts listening
+ * Returns sockfd, or <0 if error
+ */
 int create_server(const char* port) {
-    int sock_fd;
+    int sockfd;
     struct addrinfo hints, *res, *p;
     int status;
 
@@ -94,15 +97,15 @@ int create_server(const char* port) {
     // Loop through results, bind to the first one we can
     for (p = res; p != NULL; p = p->ai_next) {
         // Create the socket
-        sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (sock_fd < 0) {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd < 0) {
             fprintf(stderr, "server: socket error\n");
             continue;
         }
 
         // Bind the socket
-        if (bind(sock_fd, res->ai_addr, res->ai_addrlen) != 0) {
-            close(sock_fd);
+        if (bind(sockfd, p->ai_addr, p->ai_addrlen) != 0) {
+            close(sockfd);
             fprintf(stderr, "server: bind error\n");
             continue;
         }
@@ -112,7 +115,7 @@ int create_server(const char* port) {
 
     // Couldn't bind to anything
     if (p == NULL) {
-        fprintf(stderr, "server: bind error\n");
+        fprintf(stderr, "server: bind failed\n");
         return -1;
     }
                 
@@ -120,10 +123,61 @@ int create_server(const char* port) {
     freeaddrinfo(res);
 
     // Start listening
-    if (listen(sock_fd, BACKLOG) == -1) {
+    if (listen(sockfd, BACKLOG) == -1) {
         fprintf(stderr, "server: listen error\n");
         return -1;
     }
 
-    return sock_fd;
+    return sockfd;
+}
+
+/*
+ * Creates socket, connects to remote host
+ * Returns sockfd, or <0 if error
+ */
+int client_connect(const char* host, const char* port) {
+    int sockfd;
+    struct addrinfo hints, *res, *p;
+    char s[INET_ADDRSTRLEN];
+    int status;
+
+    // Initialize address struct
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if ((status = getaddrinfo(host, port, &hints, &res)) != 0) {
+        fprintf(stderr, "client: getaddrinfo error %s\n", gai_strerror(status));
+        return -1;
+    }
+
+    // Loop through results, connect to the first one we can
+    for (p = res; p != NULL; p = p->ai_next) {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd < 0) {
+            fprintf(stderr, "client: socket error\n");
+            continue;
+        }
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            fprintf(stderr, "client: connect error\n");
+            continue;
+        }
+
+        break;
+    }
+
+    if (p == NULL) {
+        fprintf(stderr, "client: connection failed\n");
+        return -1;
+    }
+
+    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
+              s, sizeof s);
+    printf("client: connecting to %s\n", s);
+
+    freeaddrinfo(res);
+
+    return sockfd;
 }

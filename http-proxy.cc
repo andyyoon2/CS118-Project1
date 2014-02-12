@@ -13,6 +13,7 @@
 #include <signal.h>
 
 #include "compat.h"
+#include "http-request.h"
 
 using namespace std;
 
@@ -20,18 +21,47 @@ int main (int argc, char *argv[])
 {
     // command line parsing
     if (argc != 1) {
-        fprintf(stdout, "Usage: %s\n", argv[0]);
+        fprintf(stderr, "Usage: %s\n", argv[0]);
         return 1;
     }
 
-    int sock_fd, new_fd;
+    int sockfd, new_fd;
     struct sigaction sa;
     struct sockaddr_storage their_addr;
     socklen_t sin_size;
     char s[INET_ADDRSTRLEN];
-    
-    sock_fd = create_server(SERVER_LISTEN_PORT);
-    if (sock_fd < 0) {
+
+    char buf[BUF_SIZE];
+    int numbytes;
+
+    // Test client connection
+    sockfd = client_connect("www.google.com","80");
+    HttpRequest req;
+    req.SetHost("www.google.com");
+    req.SetPort(80);
+    req.SetMethod(HttpRequest::GET);
+    req.SetPath("/");
+    req.SetVersion("1.0");
+    req.AddHeader("Accept-Language", "en-US");
+    size_t req_len = req.GetTotalLength();
+    char test_buf[req_len];
+    req.FormatRequest(test_buf);
+    if ((send(sockfd, test_buf, req_len, 0)) == -1) {
+        fprintf(stderr, "client: send error\n");
+        return 1;
+    }
+
+    if ((numbytes = recv(sockfd, buf, BUF_SIZE-1, 0)) == -1) {
+        fprintf(stderr, "client: recv error\n");
+        return 1;
+    }
+    buf[numbytes] = '\0';
+    printf("client: received %s\n", buf);
+    close(sockfd);
+
+    // Make server
+    sockfd = create_server(SERVER_LISTEN_PORT);
+    if (sockfd < 0) {
         fprintf(stderr, "server: creation error\n");
         return 1;
     }
@@ -50,7 +80,7 @@ int main (int argc, char *argv[])
     // Main loop
     while (true) {
         sin_size = sizeof their_addr;
-        new_fd = accept(sock_fd, (struct sockaddr *)&their_addr, &sin_size);
+        new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
         if (new_fd == -1) {
             fprintf(stderr, "server: accept\n");
             return -1;
@@ -62,7 +92,7 @@ int main (int argc, char *argv[])
         printf("server: got connection from %s\n", s);
 
         if (!fork()) { // this is the child process
-            close(sock_fd); // done with the listener
+            close(sockfd); // done with the listener
             if (send(new_fd, "Hello, world!\n", 14, 0) == -1) {
                 fprintf(stderr, "server: send");
             }
