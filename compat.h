@@ -15,4 +15,11 @@ char *
 stpncpy(char *s1, const char *s2, size_t n);
 #endif
 
+#define SERVER_LISTEN_PORT "14886"  // Port users will connect to
+#define BACKLOG 20                  // Number of requests allowed in queue
+
+void sigchld_handler(int s);
+void *get_in_addr(struct sockaddr *sa);
+int create_server(const char* port);
+
 #endif

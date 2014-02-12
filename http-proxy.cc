@@ -12,21 +12,9 @@
 #include <arpa/inet.h>
 #include <signal.h>
 
-#include "http-request.h"
+#include "compat.h"
 
 using namespace std;
-
-#define SERVER_LISTEN_PORT "14886"  // Port users will connect to
-#define BACKLOG 20                  // Number of requests allowed in queue
-
-void sigchld_handler(int s) {
-    while(waitpid(-1, NULL, WNOHANG) > 0);
-}
-
-// gets socket addr, only need to support IPv4
-void *get_in_addr(struct sockaddr *sa) {
-    return &(((struct sockaddr_in*)sa)->sin_addr);
-}
 
 int main (int argc, char *argv[])
 {
@@ -36,62 +24,16 @@ int main (int argc, char *argv[])
         return 1;
     }
 
-    // getaddrinfo();
-    // socket();
-    // bind();
-    // listen();
-    // accept();
     int sock_fd, new_fd;
-    struct addrinfo hints, *res, *p;
+    struct sigaction sa;
     struct sockaddr_storage their_addr;
     socklen_t sin_size;
-    struct sigaction sa;
     char s[INET_ADDRSTRLEN];
-    int status;
-
-    // Initialize address struct
-    memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;  // we only need to support IPv4
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-    if ((status = getaddrinfo(NULL, SERVER_LISTEN_PORT, &hints, &res)) != 0) {
-        fprintf(stderr, "server: getaddrinfo error %s\n", gai_strerror(status));
-        return -1;
-    }
     
-    // Loop through results, bind to the first one we can
-    for (p = res; p != NULL; p = p->ai_next) {
-        // Create the socket
-        sock_fd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        if (sock_fd < 0) {
-            fprintf(stderr, "server: socket error\n");
-            continue;
-        }
-
-        // Bind the socket
-        if (bind(sock_fd, res->ai_addr, res->ai_addrlen) != 0) {
-            close(sock_fd);
-            fprintf(stderr, "server: bind error\n");
-            continue;
-        }
-
-        break;
-    }
-    
-    // Couldn't bind to anything
-    if (p == NULL) {
-        fprintf(stderr, "server: bind error\n");
-        return -1;
-    }
-
-    // All done with res struct
-    freeaddrinfo(res);
-
-    // Start listening
-    if (listen(sock_fd, BACKLOG) == -1) {
-        fprintf(stderr, "server: listen error\n");
-        return -1;
+    sock_fd = create_server(SERVER_LISTEN_PORT);
+    if (sock_fd < 0) {
+        fprintf(stderr, "server: creation error\n");
+        return 1;
     }
 
     // Reap zombies
@@ -121,7 +63,7 @@ int main (int argc, char *argv[])
 
         if (!fork()) { // this is the child process
             close(sock_fd); // done with the listener
-            if (send(new_fd, "Hello, world!", 13, 0) == -1) {
+            if (send(new_fd, "Hello, world!\n", 14, 0) == -1) {
                 fprintf(stderr, "server: send");
             }
             close(new_fd);
