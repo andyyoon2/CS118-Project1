@@ -11,6 +11,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <iostream>
 
 #include "compat.h"
 #include "http-request.h"
@@ -22,17 +23,21 @@ using namespace std;
  * Gets HTTP request from client and forwards to remote server
  */
 int process_request(int client_fd) {
-    string client_buf;
+    string client_buf = "";
     char buf[BUF_SIZE];
 
     // Receive request until "\r\n\r\n"
-    while (memmem(client_buf.c_str(), client_buf.length(), 
-           "\r\n\r\n", 4) == NULL) {
+    while (true) {
+	//Clear what's currently in the buffer
+	bzero(buf,BUF_SIZE);
         if (recv(client_fd, buf, BUF_SIZE-1, 0) < 0) {
             fprintf(stderr,"server: recv error\n");
             return -1;
         }
         client_buf.append(buf);
+	//If we reach \r\n\r\n then we exit
+	if(memmem(client_buf.c_str(),client_buf.length(),"\r\n\r\n",4) != NULL)
+		break;
     }
 
     // Parse the request, prepare our own request to send to remote
