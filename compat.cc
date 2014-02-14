@@ -66,7 +66,7 @@ stpncpy (char *dst, const char *src, size_t len)
 
 void sigchld_handler(int s) {
     while(waitpid(-1, NULL, WNOHANG) > 0);
-    }
+}
 
 /*
  * gets socket addr, only need to support IPv4
@@ -189,6 +189,14 @@ int client_connect(const char* host, const char* port) {
 int client_receive(int sockfd, std::string &res) {
     char buf[BUF_SIZE];
     int numbytes;
+
+    // Set timeout 3 seconds
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec = 0;
+
+    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof (struct timeval));
+
     while (true) {
         if ((numbytes = recv(sockfd, buf, BUF_SIZE-1, 0)) == -1) {
             fprintf(stderr, "client: recv error\n");
@@ -197,13 +205,12 @@ int client_receive(int sockfd, std::string &res) {
 
         // Server is done sending
         else if (numbytes == 0) {
-            break;
+            return 0;
         }
 
         // Append to response
         res.append(buf, numbytes);
     }
-    return 0;
 }
 
 /*

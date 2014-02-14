@@ -11,7 +11,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <cerrno>
 #include <iostream>
+#include <sstream>
 
 #include "compat.h"
 #include "http-request.h"
@@ -25,6 +27,7 @@ using namespace std;
 int process_request(int client_fd) {
     string client_buf = "";
     char buf[BUF_SIZE];
+    int a;
 
     // Receive request until "\r\n\r\n"
     while (true) {
@@ -50,10 +53,8 @@ int process_request(int client_fd) {
     catch (ParseException exn) {
         fprintf(stderr, "Parse Exception: %s\n", exn.what());
         
-        // FIXME
-        // This initialization may not work in certain exns.
-        // May have to assume version
-        string res = client_req.GetVersion();
+        // Assume version 1.1
+        string res = "HTTP/1.1 ";
 
         const char *cmp1 = "Request is not GET";
         const char *cmp2 = "Only GET method is supported";
@@ -78,13 +79,18 @@ int process_request(int client_fd) {
     client_req.FormatRequest(remote_req);
 
     string remote_host = client_req.GetHost();
+    // Get port number, convert to string
+    a = client_req.GetPort();
+    stringstream ss;
+    ss << a;
+    string remote_port = ss.str();
 
     // if (remote_req in our cache) { get from cache }
     // else { get from remote server: below }
     // Connect to remote server
-    int remote_fd = client_connect(remote_host.c_str(), REMOTE_SERVER_PORT);
+    int remote_fd = client_connect(remote_host.c_str(), remote_port.c_str());
     if (remote_fd < 0) {
-        fprintf(stderr, "client: couldn't connect to remote host %s on port %s\n", remote_host.c_str(), REMOTE_SERVER_PORT);
+        fprintf(stderr, "client: couldn't connect to remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
         free(remote_req);
         return -1;
     }
@@ -98,14 +104,16 @@ int process_request(int client_fd) {
     }
     
     string remote_res;
-    if (client_receive(remote_fd, remote_res) < 0) {
-        fprintf(stderr, "client: couldn't get data from remote host %s on port %s\n", remote_host.c_str(), REMOTE_SERVER_PORT);
+    a = client_receive(remote_fd, remote_res);
+    if (a < 0 && (errno != EWOULDBLOCK && errno != EAGAIN)) {
+        fprintf(stderr, "client: couldn't get data from remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
         free(remote_req);
         close(remote_fd);
         return -1;
     }
+    printf(remote_res.c_str());
 
-    // Done getting data
+    // Close connection if needed
     close(remote_fd);
 
     // Send response back to client
@@ -165,15 +173,9 @@ int main (int argc, char *argv[])
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (!fork()) { // this is the child process
-            close(sockfd); // done with the listener
-            if (process_request(new_fd) < 0) {
-                fprintf(stderr, "proxy: couldn't forward HTTP request\n");
-            }
-            close(new_fd);
-            exit(0);
+        if (process_request(new_fd) < 0) {
+            fprintf(stderr, "proxy: couldn't forward HTTP request\n");
         }
         close(new_fd);
     }
-    return 0;
 }

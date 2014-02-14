@@ -15,8 +15,7 @@ char *
 stpncpy(char *s1, const char *s2, size_t n);
 #endif
 
-#define PROXY_SERVER_PORT "14886"   // Port users will connect to
-#define REMOTE_SERVER_PORT "80"     // Port our proxy will connect to
+#define PROXY_SERVER_PORT "34567"   // Port users will connect to
 #define BACKLOG 20                  // Number of requests allowed in queue
 #define BUF_SIZE 1086               // Number of bytes we can get at once
 #include <string>
