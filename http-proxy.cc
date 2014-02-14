@@ -111,9 +111,8 @@ int process_request(int client_fd) {
         close(remote_fd);
         return -1;
     }
-    printf(remote_res.c_str());
 
-    // Close connection if needed
+    // Close connection
     close(remote_fd);
 
     // Send response back to client
@@ -173,9 +172,14 @@ int main (int argc, char *argv[])
                   s, sizeof s);
         printf("server: got connection from %s\n", s);
 
-        if (process_request(new_fd) < 0) {
-            fprintf(stderr, "proxy: couldn't forward HTTP request\n");
+        if (!fork()) { // this is child process
+            close(sockfd); // child doesn't need listener
+            if (process_request(new_fd) < 0) {
+                fprintf(stderr, "proxy: couldn't forward HTTP request\n");
+            }
+            close(new_fd);
+            exit(0);
         }
-        close(new_fd);
+        close(new_fd); // parent doesn't need new fd
     }
 }
