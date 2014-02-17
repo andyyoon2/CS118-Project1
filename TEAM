@@ -1,6 +1,9 @@
 CS 118 Project 1 Team Member Information
 
 Team Members:
+Calvin Chan UID: 404144970
+Kenneth Shi UID: 304063313
+Andrew Yoon UID: 903912647
 
 In general, all three team members worked pretty closely and tried not to 
 give just one person a specific task since we all wanted to learn about how
@@ -14,7 +17,7 @@ while Calvin/Kenneth worked on parsing headers and setting up persistent
 connections. After implementing the cacher, we worked together to fix issues
 and get some tests working. 
 
-Calvin Chan
+Calvin Chan:
 	- Worked to rewrite code after changing from RAM cache to on disk cache
 	- Set up the expiration checker for cached data
 	- Wrote code that parsed headers to be sent/received from the client
