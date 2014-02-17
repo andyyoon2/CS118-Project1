@@ -63,7 +63,18 @@ stpncpy (char *dst, const char *src, size_t len)
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <iostream>
 
+//Includes for cache
+#include <boost/interprocess/shared_memory_object.hpp>
+#include <boost/interprocess/sync/sharable_lock.hpp>
+#include <boost/interprocess/sync/file_lock.hpp>
+#include <boost/filesystem.hpp>
+#include <sys/file.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+
+using namespace std;
 void sigchld_handler(int s) {
     while(waitpid(-1, NULL, WNOHANG) > 0);
 }
@@ -75,14 +86,39 @@ void *get_in_addr(struct sockaddr *sa) {
     return &(((struct sockaddr_in*)sa)->sin_addr);
 }
 
+
+/*
+ * Helper function to deal with timeouts. Default timeout is set at 30 seconds
+ */
+int rcvTimeout(int i, char* buffer, int length){
+    fd_set fd;
+    struct timeval tv;
+    
+    //Set the fds
+    FD_ZERO(&fd);
+    FD_SET(i, &fd);
+    
+    tv.tv_sec = 30; //seconds
+    tv.tv_usec = 0; //msecs
+    
+    int timer = select(i+1,&fd,NULL,NULL,&tv);
+    if(timer <= 0){
+        cout << "TIMEOUT" << endl;
+        return -1; //There was a timeout
+    }
+    return recv(i,buffer,length,0); //data has arrived, so use regular recv() function
+}
+
 /* 
  * Creates socket, binds to port, starts listening
  * Returns sockfd, or <0 if error
  */
 int create_server(const char* port) {
+    //From Beej's guide
     int sockfd;
     struct addrinfo hints, *res, *p;
     int status;
+    int temp = 1;
 
     // Initialize address struct
     memset(&hints, 0, sizeof hints);
@@ -102,6 +138,12 @@ int create_server(const char* port) {
         if (sockfd < 0) {
             fprintf(stderr, "server: socket error\n");
             continue;
+        }
+
+        //setup socket options
+        if(setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &temp, sizeof(int)) == -1){
+            fprintf(stderr, "server: setsockopt error\n");
+            exit(1);            
         }
 
         // Bind the socket
@@ -129,6 +171,7 @@ int create_server(const char* port) {
         return -1;
     }
 
+    //Everything else is good, return our socket
     return sockfd;
 }
 
@@ -141,10 +184,11 @@ int client_connect(const char* host, const char* port) {
     struct addrinfo hints, *res, *p;
     char s[INET_ADDRSTRLEN];
     int status;
-
+	
+    cout << "Client connecting" << endl;
     // Initialize address struct
     memset(&hints, 0, sizeof hints);
-    hints.ai_family = AF_INET;
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
 
     if ((status = getaddrinfo(host, port, &hints, &res)) != 0) {
@@ -159,11 +203,11 @@ int client_connect(const char* host, const char* port) {
             fprintf(stderr, "client: socket error\n");
             continue;
         }
-
-        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+	
+	int connect_status = connect(sockfd,p->ai_addr,p->ai_addrlen);
+        if (connect_status < 0) {
             close(sockfd);
             fprintf(stderr, "client: connect error\n");
-            continue;
         }
 
         break;
@@ -186,31 +230,71 @@ int client_connect(const char* host, const char* port) {
 /*
  * Gets all data from the specified source
  */
-int client_receive(int sockfd, std::string &res) {
-    char buf[BUF_SIZE];
-    int numbytes;
+int client_receive(HttpRequest* obj, int sockfd, std::string &res) {
+    //char* buf = new char[obj->GetTotalLength()+1];
+    //int numbytes;
 
-    // Set timeout 3 seconds
-    struct timeval tv;
-    tv.tv_sec = 3;
-    tv.tv_usec = 0;
+    // Set timeout 15 seconds
+    //struct timeval tv;
+    //tv.tv_sec = 15;
+    //tv.tv_usec = 0;
 
-    setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof (struct timeval));
+    //setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof (struct timeval));
 
-    while (true) {
-        if ((numbytes = recv(sockfd, buf, BUF_SIZE-1, 0)) == -1) {
+    /*while (true) {
+	//char buf[BUF_SIZE];
+	int numbytes = rcvTimeout(sockfd, buf, sizeof(sockfd));
+        //cout << "Current number " << numbytes << endl;
+	if (numbytes  < 0) {
             fprintf(stderr, "client: recv error\n");
             return -1;
         }
 
         // Server is done sending
         else if (numbytes == 0) {
-            return 0;
+            break;
         }
 
         // Append to response
-        res.append(buf, numbytes);
+        res += buf;
+        //cout << "Current string is: " << res << endl;
     }
+	return 0;*/
+    bool valid = false; //set it true inside
+    int timedout = 0; //Check our rcvTimeout function to see if connection has timed out
+    int rnrn = 0; //Keeps track of whether or not we hit \r\n\r\n
+    char cur; //Our current byte that we're receiving
+    for(;;)
+    {
+        cur = '\0';
+        //Reading one byte at a time, we check if we see a pattern of \r\n\r\n
+        //If we do, then it means it's the end of the header
+        if((timedout = rcvTimeout(sockfd,&cur,1)) == 1){ 
+            res += cur;
+            //If rnrn = 3, and the current is \n, it means we're at the end
+            if(cur == '\n' && rnrn == 3) 
+                valid = true;
+            else 
+                if(cur == '\r' && rnrn == 2) 
+                rnrn++;
+            else 
+                if(cur == '\n' && rnrn == 1) 
+                rnrn++;
+            else 
+                if(cur == '\r')
+                rnrn = 1;
+            else // Didn't find \r\n\r\n so reset
+                rnrn = 0;    
+        }
+            //If we reach here it means there are no more packets being sent
+            else
+                break;
+    }
+    if(!valid){
+        fprintf(stderr, "client: recv error\n");
+        return -1;
+        }
+    return 0;
 }
 
 /*
