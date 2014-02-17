@@ -23,11 +23,17 @@ stpncpy(char *s1, const char *s2, size_t n);
 #include "http-request.h"
 #include "http-response.h"
 
+using namespace std;
+
 void sigchld_handler(int s);
 void *get_in_addr(struct sockaddr *sa);
 int create_server(const char* port);
 int client_connect(const char* host, const char* port);
 int client_receive(HttpRequest* obj, int sockfd, std::string &res);
 int rcvTimeout(int i, char* buffer, int length);
+bool cache(HttpRequest* obj, string& data);
+bool save_data(std::string id, std::string content);
+string get_data(std::string id);
+bool expiration(std::string date);
 int send_all(int sockfd, const char *buf, int len);
 #endif

@@ -50,21 +50,22 @@ int process_request(int client_fd) {
         	break;
     }
 	
-    cout << "Processing the request: " << client_buf << endl;
     // Parse the request, prepare our own request to send to remote
     HttpRequest client_req;
     try {
         client_req.ParseRequest(client_buf.c_str(),client_buf.length());
+
         string version_check1 = "1.0";
         string version_check2 = "1.1";
+
         if(version_check1.compare(client_req.GetVersion()) == 0){ 
             //We are serving HTTP 1.0
-            printf("This is a HTTP/1.0:Non-Persistent Connection\n");
+            printf("HTTP/1.0:Non-Persistent Connection:\n");
             p_connection = false;
         }
         else if(version_check2.compare(client_req.GetVersion()) == 0){ 
             //We are serving HTTP 1.1
-            printf("This is a HTTP/1.1:Persistent Connection\n");
+            printf("HTTP/1.1:Persistent Connection:\n");
             p_connection = true;
         }
         else{//Unsupported version
@@ -108,46 +109,140 @@ int process_request(int client_fd) {
     stringstream ss;
     ss << a;
     string remote_port = ss.str();
-	
     cout << "Getting port number " << remote_port << endl;
-    // if (remote_req in our cache) { get from cache }
-    // else { get from remote server: below }
-    // Connect to remote server
-    int remote_fd = client_connect(remote_host.c_str(), remote_port.c_str());
-    if (remote_fd < 0) {
-        fprintf(stderr, "client: couldn't connect to remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
-        free(remote_req);
-        return -1;
-    }
 
-    // Send the request
-    if (send_all(remote_fd, remote_req, remote_len) == -1) {
-        fprintf(stderr, "client: send error\n");
-        free(remote_req);
-        close(remote_fd);
-        return -1;
-    }
-    
+
+    //This is our remote response string
     string remote_res = "";
-    cout << "Trying to get response from server" << endl;
-    a = client_receive(&client_req, remote_fd, remote_res);
-    cout << "Got response from server" << endl;
-    //cout << "Response contains:\n " << remote_res << endl;
+    //Our remote fd declared here
+    int remote_fd;
 
-    //Check in case of errors
-    if (a < 0 && (errno != EWOULDBLOCK && errno != EAGAIN)) {
-        fprintf(stderr, "client: couldn't get data from remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
+	
+    //Next, we try and see if the data is in our cache, if not, we fetch it
+    if (cache(&client_req, remote_res)) { 
+        cout << "Response from the cache is sent" << endl;
+        //If the response is in the cache, we just need to return the response
+        if (send_all(client_fd, remote_res.c_str(), remote_res.length()) == -1) {
+            fprintf(stderr, "server: send error\n");
+            free(remote_req);
+            return -1;
+        }
+
+        // Close connection if concurrent, otherwise leave connection open
+        if(!p_connection){
+            cout << "Closing connection after finding data in our cache" << endl;
+            //close(remote_fd);
+        }
+        else
+        {
+            cout << "Persistent connection, waiting for next input" << endl;
+            client_buf = "";
+            goto persistent;
+        }
+        
         free(remote_req);
-        close(remote_fd);
-        return -1;
-    }
+        return 0;
 
+    }
+    else{ //Otherwise, we haven't found our request in the cache, so we will check the remote server
+
+        // Connect to remote server
+        remote_fd = client_connect(remote_host.c_str(), remote_port.c_str());
+        if (remote_fd < 0) {
+            fprintf(stderr, "client: couldn't connect to remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
+            free(remote_req);
+            return -1;
+        }  
+
+        // Send the request
+        if (send_all(remote_fd, remote_req, remote_len) == -1) {
+            fprintf(stderr, "client: send error\n");
+            free(remote_req);
+            close(remote_fd);
+            return -1;
+        }
+        
+        cout << "Trying to get response from server" << endl;
+        a = client_receive(&client_req, remote_fd, remote_res);
+        cout << "Response contains:\n " << remote_res << endl;
+
+        //Check in case of errors
+        if (a < 0 && (errno != EWOULDBLOCK && errno != EAGAIN)) {
+            fprintf(stderr, "client: couldn't get data from remote host %s on port %s\n", remote_host.c_str(), remote_port.c_str());
+            free(remote_req);
+            close(remote_fd);
+            return -1;
+        }
+
+        //Store into cache
+        string localdata = get_data(client_req.GetHost()+client_req.GetPath());
+        HttpResponse* object = new HttpResponse;
+
+            object->ParseResponse(remote_res.c_str(),remote_res.length());
+            int header_code = atoi(object->GetStatusCode().c_str()); 
+
+            /*Getting ready to check header codes*/
+
+            //Cude
+            if(header_code == 200){
+                cout << "Saving our data to the cache" << endl;       
+                save_data(client_req.GetHost()+client_req.GetPath(), remote_res);
+            }
+            else if(header_code == 304){
+                //If our data was found in the cache, we need to check 
+                //Whether or not it expired
+                if(localdata.length() > 1){
+                    if(!expiration(object->FindHeader("Expires")))
+                    { 
+                        HttpResponse* http_cached = new HttpResponse;
+                        http_cached->ParseResponse(localdata.c_str(),localdata.length());
+                        
+                        //Find the length of the header
+                        int header_size = http_cached->GetTotalLength();
+
+                        //Find current string that we're on, and get ready to add it to our remote_res
+                        string cur = localdata.substr(header_size, localdata.length());
+                        http_cached->ModifyHeader("Expires",object->FindHeader("Expires"));
+
+
+                        char* rnrn = new char[header_size];
+                        rnrn[header_size] = '\0';
+                        http_cached->FormatResponse(rnrn);
+                        
+                        //get rid of everything after first \r\n\r\n
+                        string temp = "";
+                        int counter = 0;
+                        for(int i =0; i<header_size;i++){
+                            temp+= rnrn[i];
+                            //Look to find \r\n\r\n combo
+                            if(counter == 3 && rnrn[i] == '\n') 
+                                break;
+                            else 
+                                if(counter == 2 && rnrn[i] == '\r')
+                                counter++;
+                            else 
+                                if(counter == 1 && rnrn[i] == '\n')
+                                counter++;
+                            else 
+                                if(rnrn[i] == '\r')
+                                counter = 1; 
+                            //Otherwise, we didn't hit \r\n\r\n combo so we reset
+                            else 
+                                counter = 0;                    
+                            }
+
+                        remote_res = temp + cur;
+                        delete http_cached;
+                    }
+                }
+            delete object;
+            }
+    }
     // Send response back to client
     if (send_all(client_fd, remote_res.c_str(), remote_res.length()) == -1) {
         fprintf(stderr, "server: send error\n");
         free(remote_req);
         return -1;
-    }
 
     // Close connection if concurrent, otherwise leave connection open
     if(!p_connection){
@@ -160,9 +255,11 @@ int process_request(int client_fd) {
         client_buf = "";
         goto persistent;
     }
-    
+
+}  
     free(remote_req);
     return 0;
+
 }
 
 int main (int argc, char *argv[])

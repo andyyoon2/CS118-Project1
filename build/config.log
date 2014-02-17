@@ -1,17 +1,17 @@
-# project  configured on Tue Feb 11 19:32:20 2014 by
+# project  configured on Sun Feb 16 17:36:37 2014 by
 # waf 1.6.11 (abi 98, python 20706f0 on linux2)
 # using ./waf configure
 #
 ----------------------------------------
 Setting top to
-/w/home.02/cs/ugrad/andrewy/cs118-project1
+/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1
 ----------------------------------------
 Setting out to
-/w/home.02/cs/ugrad/andrewy/cs118-project1/build
+/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build
 ----------------------------------------
 Checking for 'gcc' (c compiler)
-find program=['gcc', 'cc'] paths=['/usr/local/cs/bin', '/usr/lib64/qt-3.3/bin', '/usr/local/bin', '/bin', '/usr/bin', '/usr/X11R6/bin', '/opt/dell/srvadmin/bin', '/u/cs/ugrad/andrewy/bin'] var='CC' -> '/usr/local/cs/bin/gcc'
-find program=['ar'] paths=['/usr/local/cs/bin', '/usr/lib64/qt-3.3/bin', '/usr/local/bin', '/bin', '/usr/bin', '/usr/X11R6/bin', '/opt/dell/srvadmin/bin', '/u/cs/ugrad/andrewy/bin'] var='AR' -> '/usr/bin/ar'
+find program=['gcc', 'cc'] paths=['/usr/local/cs/bin', '/usr/lib64/qt-3.3/bin', '/usr/local/bin', '/bin', '/usr/bin', '/usr/X11R6/bin', '/opt/dell/srvadmin/bin', '/u/cs/ugrad/zheyuan/bin', '/usr/local/cs/bin'] var='CC' -> '/usr/local/cs/bin/gcc'
+find program=['ar'] paths=['/usr/local/cs/bin', '/usr/lib64/qt-3.3/bin', '/usr/local/bin', '/bin', '/usr/bin', '/usr/X11R6/bin', '/opt/dell/srvadmin/bin', '/u/cs/ugrad/zheyuan/bin', '/usr/local/cs/bin'] var='AR' -> '/usr/bin/ar'
 /usr/local/cs/bin/gcc
 ----------------------------------------
 Checking for 'g++' (c++ compiler)
@@ -33,7 +33,7 @@ int main() {
 ['/usr/bin/g++', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_b141d776b4c9931d133a367f1bba2bac/testbuild/test.cpp.1.o -> build/.conf_check_b141d776b4c9931d133a367f1bba2bac/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_b141d776b4c9931d133a367f1bba2bac/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_b141d776b4c9931d133a367f1bba2bac/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 yes
 ----------------------------------------
 Checking for function memmem
@@ -52,7 +52,7 @@ Checking for function memmem
 ['/usr/bin/g++', '-DHAVE_STRING_H=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_af718a5c28161c7ecc5532867b677e33/testbuild/test.cpp.1.o -> build/.conf_check_af718a5c28161c7ecc5532867b677e33/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_af718a5c28161c7ecc5532867b677e33/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_af718a5c28161c7ecc5532867b677e33/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 yes
 ----------------------------------------
 Checking for function stpncpy
@@ -71,7 +71,7 @@ Checking for function stpncpy
 ['/usr/bin/g++', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_2efa5c7b297dfc512e5851df5dbe1f80/testbuild/test.cpp.1.o -> build/.conf_check_2efa5c7b297dfc512e5851df5dbe1f80/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_2efa5c7b297dfc512e5851df5dbe1f80/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_2efa5c7b297dfc512e5851df5dbe1f80/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 yes
 ----------------------------------------
 Checking boost includes
@@ -159,7 +159,7 @@ int main() { boost::system::error_code c; }
 ['/usr/bin/g++', '-I/usr/include', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/test.cpp.1.o -> build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic', '-L/usr/lib64', '-lboost_system-mt', '-lboost_thread-mt']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_968fbcee789046a8c143bb4a6e302895/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic', '-L/usr/lib64', '-lboost_system-mt', '-lboost_thread-mt']
 ==>
 #include <boost/thread.hpp>
 int main() { boost::thread t; }
@@ -169,7 +169,7 @@ int main() { boost::thread t; }
 ['/usr/bin/g++', '-I/usr/include', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_f9432292e9cb949513778706dc8c1baa/testbuild/test.cpp.1.o -> build/.conf_check_f9432292e9cb949513778706dc8c1baa/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_f9432292e9cb949513778706dc8c1baa/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic', '-L/usr/lib64', '-lboost_system-mt', '-lboost_thread-mt']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_f9432292e9cb949513778706dc8c1baa/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic', '-L/usr/lib64', '-lboost_system-mt', '-lboost_thread-mt']
 ok
 ----------------------------------------
 Checking allowed flags for c++ compiler
@@ -185,7 +185,7 @@ int main() {
 ['/usr/bin/g++', '-O0', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_9ea05810aa53a56f54bd2c04356b1cb9/testbuild/test.cpp.1.o -> build/.conf_check_9ea05810aa53a56f54bd2c04356b1cb9/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_9ea05810aa53a56f54bd2c04356b1cb9/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_9ea05810aa53a56f54bd2c04356b1cb9/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 ==>
 
 int main() {
@@ -198,7 +198,7 @@ int main() {
 ['/usr/bin/g++', '-g3', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_4a48fdeb09b262415c3b65209a4ca0f1/testbuild/test.cpp.1.o -> build/.conf_check_4a48fdeb09b262415c3b65209a4ca0f1/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_4a48fdeb09b262415c3b65209a4ca0f1/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_4a48fdeb09b262415c3b65209a4ca0f1/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 ==>
 
 int main() {
@@ -211,7 +211,7 @@ int main() {
 ['/usr/bin/g++', '-Wall', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_1f826cc5dc606b1aef2555217e072e1c/testbuild/test.cpp.1.o -> build/.conf_check_1f826cc5dc606b1aef2555217e072e1c/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_1f826cc5dc606b1aef2555217e072e1c/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_1f826cc5dc606b1aef2555217e072e1c/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 ==>
 
 int main() {
@@ -224,7 +224,7 @@ int main() {
 ['/usr/bin/g++', '-Wno-unused-private-field', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_cf8810e43ad3f6c22b4e5bc2f45d04d4/testbuild/test.cpp.1.o -> build/.conf_check_cf8810e43ad3f6c22b4e5bc2f45d04d4/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_cf8810e43ad3f6c22b4e5bc2f45d04d4/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_cf8810e43ad3f6c22b4e5bc2f45d04d4/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 ==>
 
 int main() {
@@ -237,17 +237,17 @@ int main() {
 ['/usr/bin/g++', '-fcolor-diagnostics', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 err: cc1plus: error: unrecognized command line option "-fcolor-diagnostics"
 
-from /w/home.02/cs/ugrad/andrewy/cs118-project1: Test does not build: Traceback (most recent call last):
-  File "/w/home.02/cs/ugrad/andrewy/cs118-project1/.waf-1.6.11-e259c754a0d76606fd48525f48505e56/waflib/Tools/c_config.py", line 445, in run_c_code
+from /w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1: Test does not build: Traceback (most recent call last):
+  File "/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/.waf-1.6.11-e259c754a0d76606fd48525f48505e56/waflib/Tools/c_config.py", line 445, in run_c_code
     bld.compile()
-  File "/w/home.02/cs/ugrad/andrewy/cs118-project1/.waf-1.6.11-e259c754a0d76606fd48525f48505e56/waflib/Build.py", line 190, in compile
+  File "/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/.waf-1.6.11-e259c754a0d76606fd48525f48505e56/waflib/Build.py", line 190, in compile
     raise Errors.BuildError(self.producer.error)
 BuildError: Build failed
  -> task in 'testprog' failed (exit status 1): 
-	{task 28242512: cxx test.cpp -> test.cpp.1.o}
+	{task 34772112: cxx test.cpp -> test.cpp.1.o}
 ['/usr/bin/g++', '-fcolor-diagnostics', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 
-from /w/home.02/cs/ugrad/andrewy/cs118-project1: The configuration failed
+from /w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1: The configuration failed
 ==>
 
 int main() {
@@ -262,7 +262,7 @@ err: g++: unrecognized option '-Qunused-arguments'
 
 [2/2] [33mcxxprogram: build/.conf_check_1f0ddfd47aa2dea353fcf6122aa3759f/testbuild/test.cpp.1.o -> build/.conf_check_1f0ddfd47aa2dea353fcf6122aa3759f/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_1f0ddfd47aa2dea353fcf6122aa3759f/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_1f0ddfd47aa2dea353fcf6122aa3759f/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 ==>
 
 int main() {
@@ -275,5 +275,5 @@ int main() {
 ['/usr/bin/g++', '-Werror', '-DHAVE_STRING_H=1', '-DHAVE_MEMMEM=1', '-DHAVE_STPNCPY=1', '../test.cpp', '-c', '-o', 'test.cpp.1.o']
 [2/2] [33mcxxprogram: build/.conf_check_16f4aa9f7912d19cf6a528294fe632d9/testbuild/test.cpp.1.o -> build/.conf_check_16f4aa9f7912d19cf6a528294fe632d9/testbuild/testprog
 [0m
-['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/home.02/cs/ugrad/andrewy/cs118-project1/build/.conf_check_16f4aa9f7912d19cf6a528294fe632d9/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
+['/usr/bin/g++', 'test.cpp.1.o', '-o', '/w/ugrad.20/cs/zheyuan/CS118Lab1/cs118-project1/CS118-Project1/build/.conf_check_16f4aa9f7912d19cf6a528294fe632d9/testbuild/testprog', '-Wl,-Bstatic', '-Wl,-Bdynamic']
 -O0 -g3 -Wall -Wno-unused-private-field -Qunused-arguments -Werror

@@ -51,6 +51,10 @@ stpncpy (char *dst, const char *src, size_t len)
 }
 #endif
 
+/* 
+ * A bunch of helper functions as well as our cache implementation
+ */
+
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,10 +75,27 @@ stpncpy (char *dst, const char *src, size_t len)
 #include <boost/interprocess/sync/file_lock.hpp>
 #include <boost/filesystem.hpp>
 #include <sys/file.h>
+#include <fstream>
 #include <fcntl.h>
 #include <sys/stat.h>
 
+//Includes for checking time
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include "boost/date_time/time_zone_base.hpp"
+#include <boost/date_time.hpp>
+#include <clocale>
+#include <ctime>
+
+
+using namespace boost::posix_time;
+using namespace boost::gregorian;
+using namespace boost::local_time;
+using namespace boost::filesystem;
+using namespace boost::interprocess;
 using namespace std;
+
+
+
 void sigchld_handler(int s) {
     while(waitpid(-1, NULL, WNOHANG) > 0);
 }
@@ -316,3 +337,95 @@ int send_all(int sockfd, const char *buf, int len) {
     }
     return 0;
 }
+
+/**************************
+ *     CODE FOR CACHE     *
+ **************************/
+
+//Saves data into our catch
+bool save_data(string id, string content){ 
+
+    try{
+        replace( id.begin(), id.end(), '/', '-');
+        fstream file;
+        //Opens up a file and writes the contents
+        file.open(("local_cache/"+id).c_str(), fstream::out);
+        file << content;
+        file.close();
+        cout << "Successfully stores into cache" << endl;  
+        return true;
+    }
+    catch(...){
+        fprintf(stderr, "cache: failed to store in cache\n");    
+        return false;
+    }
+
+}
+
+//Grabs data from our cache
+string get_data(string id){
+    try{
+        replace( id.begin(), id.end(), '/', '-');
+        //Code from tutorial
+        ifstream file(("local_cache/" + id).c_str(), ios::in | ios::binary);
+        if(file){
+            string content((std::istreambuf_iterator<char>(file)), 
+                            (std::istreambuf_iterator<char>())); 
+            file.close();
+            return content;
+        }
+        else
+            return "";
+    }
+    catch(...){
+        fprintf(stderr, "cache: failed to find in cache\n");
+        return "";
+    }
+}   
+
+//simple check if expired
+bool expiration(string date){
+
+    //Get current time and convert the date
+    ptime current(second_clock::local_time());
+    ptime convert; //Time we'll be converting
+    const locale f_locale = locale(locale::classic(), 
+                            new time_input_facet("%a, %d %b %Y %H:%M:%S %Z"));
+    istringstream temp(date);
+    //use our locale
+    temp.imbue(f_locale);
+    temp >> convert;
+    if(convert <= current){
+        cout << "The cached version is expired" << endl;
+        return true;
+    }
+    else{
+        cout << "The cached version is valid" << endl;
+        return false;
+    }
+}
+
+
+//Our cache is here, gets an obj and returns whether or not we found it in our cache
+bool cache(HttpRequest* obj, string& returned){
+
+    //first check if we have this request cached and not expired
+    string data = get_data(obj->GetHost()+obj->GetPath());
+    
+    if(data.length() > 1){ //we found an object let's make sure it's not expired
+        printf("Request found in cache, checking if cert has not expired\n");
+        HttpResponse* cached = new HttpResponse;
+        cached->ParseResponse(data.c_str(),data.length());
+        if(!expiration(cached->FindHeader("Expires"))){
+            printf("Using cached data\n");
+            returned = data;
+            delete cached;
+            return true;
+        }
+        delete cached;
+    }
+    //It's not in the cache
+    return false;
+}   
+       
+
