@@ -1,12 +1,15 @@
 General
 =======
 
+Simple HTTP Proxy Server created by Kenneth Shi, Calvin Chan, and Andrew Yoon for the CS118.
+
+
 To learn more about ./waf, refer to http://code.google.com/p/waf/
 and http://waf.googlecode.com/svn/docs/wafbook/single.html
 
 Ideally, you will need only to add your source files in wscript, which is basically a Python program.
 
-How to use skeleton
+How to use
 ===================
 
 Due to restrictions on lnxsrv, several steps necessary to compile and run (if you're using this skeleton):
@@ -20,9 +23,6 @@ export LD_LIBRARY_PATH=/u/cs/grad/yingdi/boost/lib:/usr/local/lib64/:$LD_LIBRARY
 
 ./waf configure
 
-If there are any errors, please email me: iliamo@ucla.edu 
-Please, mark your message with [CS118] header
-
 3. To build/rebuild the code
 
 ./waf
@@ -31,3 +31,63 @@ Please, mark your message with [CS118] header
 
 build/http-proxy
 
+Important Information
+==================
+
+- Runs on port 14886
+- Supports HTTP/1.0 (Non-persistent) and HTTP/1.1 (Persistent connection)
+- Default timeout is 30 seconds (if client/server doesn't get data in 30 seconds, we timeout)
+- Supports up to 20 connections and 20 processes
+
+Our Design
+==================
+
+We've created a simple HTTP proxy server that a user can connect to recieve and cache simple HTTP/1.0 
+and HTTP/1.1 requests. 
+
+First, we create our HTTP server using BSD sockets and information we learned both in lecture/discussion
+as well as from Beej's Networking guide (http://beej.us/guide/bgnet/output/html/singlepage/bgnet.html). 
+The guide provided us with enough information for us to set up our proxy to act both as a server (that 
+a user would connect to) as well as a client (that we will be using to fetch from a remote server). 
+
+After setting up the initial server, we would create a socket between the user and our proxy server that 
+would allow users to send an their HTTP Request to our server. The headers of these responses would be 
+checked with our local cache, and if a header was found to be in the cache and still valid, we would 
+just return the cached response instead of having to query the remote server. If our client's response 
+wasn't found in cache or if was found but expired, then we would make a new socket with an http response,
+this time to the remote server that the user was initially looking for. We would then save this new data
+in our cache so that the next time the request was looked up we could use our cache instead of sending a 
+new remote request.
+
+We attempted to first implement our cache in RAM through using C++ libraries like Map or a Dictionary, but 
+it turned out to be more difficult than we thought and we ran into a lot of issues with race conditions 
+of two different connections trying to save/load from the cache. So we ended up scrapping the RAM idea 
+and ended up using the boost library to create a cache that saved to the local disk. After looking up 
+some tutorials on caching to disk, we decided this would be a better approach, and seemed to work for 
+basic saving and readings. 
+
+While our HTTP proxy works for very simple GET commands, we do have a few issues with it and cannot pass
+all of the tests.
+
+Known Issues
+===============
+
+Currently we know of the following issues:
+
+- Concurrent connections work some of the time. As someone else pointed out in the mailgroup, we seemed
+to have run into the same problem where it seems like concurrent connections are being open but we haven't
+implementing a locking system in our concurrent connections so it doesn't seem to be working for remote 
+connections. However, if the content is stored in the cache, we're able to make concurrent connections with 
+no issues.
+
+- Conditional get doesn't work. We have not implemented re-caching correctly and will faily any conditional-GET
+checke
+
+- Issues with reading from remote server. Sometimes when we have certain ports set up, we will fail to recieve
+correctly from the server, and will always time out. Not sure if this is a bug in our code that's causing it
+but changing ports will fix the issue. 
+
+Extra Credit Attempted
+======================
+
+We attempted the extra credit attempt by implementing our cache on disk instead of in virtual memory. 

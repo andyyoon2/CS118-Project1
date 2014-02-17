@@ -15,8 +15,8 @@ char *
 stpncpy(char *s1, const char *s2, size_t n);
 #endif
 
-#define PROXY_SERVER_PORT "34567"   // Port users will connect to
-#define CONCURRENT_CONN 20 			//
+#define PROXY_SERVER_PORT "14886"   // Port users will connect to
+#define CONCURRENT_CONN 20 			// Supports up to 20 concurrent connections
 #define BACKLOG 20                  // Number of requests allowed in queue
 #define BUF_SIZE 1024               // Number of bytes we can get at once
 #include <string>

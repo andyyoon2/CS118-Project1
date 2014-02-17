@@ -1,8 +1,39 @@
 CS 118 Project 1 Team Member Information
 
 Team Members:
+
+In general, all three team members worked pretty closely and tried not to 
+give just one person a specific task since we all wanted to learn about how
+sockets worked. We all worked together on different parts, but if needed to 
+split up the work, the bullet points are below. A lot of time was spent on
+debugging previous issues and rewriting a good portion of the code. Andrew
+wrote the base http proxy initial setup, and Calvin/Kenneth worked together
+on writing the cache. After getting basic object fetching to work, Andrew
+worked on setting up a RAM cache that we would end up rewriting together,
+while Calvin/Kenneth worked on parsing headers and setting up persistent 
+connections. After implementing the cacher, we worked together to fix issues
+and get some tests working. 
+
 Calvin Chan
-Kenneth Shi 304063313
-Andy Yoon
+	- Worked to rewrite code after changing from RAM cache to on disk cache
+	- Set up the expiration checker for cached data
+	- Wrote code that parsed headers to be sent/received from the client
+	- Organized main() so only 20 processes could run at a time. 
+	- Debugged a lot of issues with our client recieving 
+
+Kenneth Shi:
+	- Rewrote code to change RAM cache into disk cache
+	- Support for persistent connections as well as non-persistent connection
+	- Organized code structure and merging code together
+	- Wrote code to save data to our cache and to read data from our cache
+
+Andrew Yoon:
+	- Wrote base code for setting up our HTTP server
+	- Set up the proxy client as well as the proxy server side
+	- Wrote all the sockets reading/writing code 
+	- Implemented timeout checking for receiving data from server/client
+	- Added in error exception
+	- Setup the initial RAM cache, later worked to reimplement into on disk
+
 
 

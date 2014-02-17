@@ -252,35 +252,6 @@ int client_connect(const char* host, const char* port) {
  * Gets all data from the specified source
  */
 int client_receive(HttpRequest* obj, int sockfd, std::string &res) {
-    //char* buf = new char[obj->GetTotalLength()+1];
-    //int numbytes;
-
-    // Set timeout 15 seconds
-    //struct timeval tv;
-    //tv.tv_sec = 15;
-    //tv.tv_usec = 0;
-
-    //setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof (struct timeval));
-
-    /*while (true) {
-	//char buf[BUF_SIZE];
-	int numbytes = rcvTimeout(sockfd, buf, sizeof(sockfd));
-        //cout << "Current number " << numbytes << endl;
-	if (numbytes  < 0) {
-            fprintf(stderr, "client: recv error\n");
-            return -1;
-        }
-
-        // Server is done sending
-        else if (numbytes == 0) {
-            break;
-        }
-
-        // Append to response
-        res += buf;
-        //cout << "Current string is: " << res << endl;
-    }
-	return 0;*/
     bool valid = false; //set it true inside
     int timedout = 0; //Check our rcvTimeout function to see if connection has timed out
     int rnrn = 0; //Keeps track of whether or not we hit \r\n\r\n
@@ -346,8 +317,8 @@ int send_all(int sockfd, const char *buf, int len) {
 bool save_data(string id, string content){ 
 
     try{
-        replace( id.begin(), id.end(), '/', '-');
         fstream file;
+        replace( id.begin(), id.end(), '/', '_');
         //Opens up a file and writes the contents
         file.open(("local_cache/"+id).c_str(), fstream::out);
         file << content;
@@ -365,7 +336,7 @@ bool save_data(string id, string content){
 //Grabs data from our cache
 string get_data(string id){
     try{
-        replace( id.begin(), id.end(), '/', '-');
+        replace( id.begin(), id.end(), '/', '_');
         //Code from tutorial
         ifstream file(("local_cache/" + id).c_str(), ios::in | ios::binary);
         if(file){
@@ -404,7 +375,6 @@ bool expiration(string date){
         return false;
     }
 }
-
 
 //Our cache is here, gets an obj and returns whether or not we found it in our cache
 bool cache(HttpRequest* obj, string& returned){
